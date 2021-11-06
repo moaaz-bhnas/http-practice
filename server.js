@@ -9,40 +9,37 @@ const players = [
 ];
 
 const server = http.createServer(function (req, res) {
-  const { headers, url, method } = req;
-  console.log(headers, url, method);
+  // Sending data in the body
+  let body = [];
 
-  // You usually need to state the content type (e.g. html for browsers to know how to render it)
-  // res.setHeader("Content_Type", "text/plain");
-  // res.setHeader("Content_Type", "text/html");
-  res.setHeader("Content_Type", "application/json");
+  req
+    .on("data", function (chunk) {
+      body.push(chunk);
+    })
+    .on("end", function () {
+      body = Buffer.concat(body).toString();
+      console.log("body: ", body);
+    });
 
-  // request body
-  // res.write("test");
-  // res.write("<h1>test</h1>");
-  // res.write("<h1>test</h1>");
+  /* chunk:
+   A chunk is a fragment of the data that is sent by the client to server all chunks concepts to each other to make a buffer of the stream then the buffer is converted into meaning full data.
+  */
 
-  // status code (success)
-  res.statusCode = 200;
-  //   res.statusCode = 404;
+  /* Buffer:
+  Node.js servers have to deal with TCP streams.
+  The Buffer class in Node.js provides a way of handling streams of binary data.
+  */
 
-  // This is considered a successful res if no errors occured (200 ok)
-  // res.end();
-  // When returning one thing as body, you can ignore ".write()" pass it to ".end()"
+  res.writeHead(200, {
+    Content_Type: "application/json",
+  });
+
   res.end(
     JSON.stringify({
       success: true,
       data: players,
     })
   );
-  // Example for 404
-  // res.end(
-  //   JSON.stringify({
-  //     success: false,
-  //     error: 'Not found',
-  //     data: null,
-  //   })
-  // );
 });
 
 const PORT = 5000;
