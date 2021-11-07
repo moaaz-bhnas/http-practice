@@ -9,7 +9,8 @@ const players = [
 ];
 
 const server = http.createServer(function (req, res) {
-  // Sending data in the body
+  const { method, url } = req;
+
   let body = [];
 
   req
@@ -18,28 +19,44 @@ const server = http.createServer(function (req, res) {
     })
     .on("end", function () {
       body = Buffer.concat(body).toString();
-      console.log("body: ", body);
+
+      let status = 404;
+      const response = {
+        success: false,
+        data: null,
+        error: null,
+      };
+
+      if (method === "GET" && url === "/players") {
+        status = 200;
+        response.success = true;
+        response.data = players;
+      } else if (method === "POST" && url === "/players") {
+        const { name } = JSON.parse(body);
+
+        if (!name) {
+          status = 400;
+          response.error = "Please add name!";
+        } else {
+          const lastId = players[players.length - 1].id;
+          players.push({
+            id: lastId + 1,
+            name,
+          });
+
+          status = 201;
+          response.success = true;
+          response.data = players;
+        }
+      }
+
+      res.writeHead(status, {
+        Content_Type: "application/json",
+        "X-Powered-By": "Node.js",
+      });
+
+      res.end(JSON.stringify(response));
     });
-
-  /* chunk:
-   A chunk is a fragment of the data that is sent by the client to server all chunks concepts to each other to make a buffer of the stream then the buffer is converted into meaning full data.
-  */
-
-  /* Buffer:
-  Node.js servers have to deal with TCP streams.
-  The Buffer class in Node.js provides a way of handling streams of binary data.
-  */
-
-  res.writeHead(200, {
-    Content_Type: "application/json",
-  });
-
-  res.end(
-    JSON.stringify({
-      success: true,
-      data: players,
-    })
-  );
 });
 
 const PORT = 5000;
